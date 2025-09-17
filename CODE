@@ -1,0 +1,88 @@
+#include <iostream>
+#include <stack>
+#include <string>
+#include <cctype>
+#include <sstream>
+#include <vector>
+using namespace std;
+
+// Operator precedence
+int precedence(char op) {
+    if (op == '+' || op == '-') return 1;
+    if (op == '*' || op == '/') return 2;
+    return 0;
+}
+
+// Convert infix to postfix
+vector<string> infixToPostfix(const string& expr) {
+    stack<char> ops;
+    vector<string> output;
+    int n = expr.size();
+    for (int i = 0; i < n; ) {
+        if (isspace(expr[i])) {
+            i++;
+            continue;
+        }
+        if (isdigit(expr[i])) {
+            string num;
+            while (i < n && (isdigit(expr[i]) || expr[i] == '.')) {
+                num += expr[i++];
+            }
+            output.push_back(num);
+        } else if (expr[i] == '(') {
+            ops.push(expr[i++]);
+        } else if (expr[i] == ')') {
+            while (!ops.empty() && ops.top() != '(') {
+                output.push_back(string(1, ops.top()));
+                ops.pop();
+            }
+            if (!ops.empty()) ops.pop();
+            i++;
+        } else if (expr[i] == '+' || expr[i] == '-' || expr[i] == '*' || expr[i] == '/') {
+            while (!ops.empty() && precedence(ops.top()) >= precedence(expr[i])) {
+                output.push_back(string(1, ops.top()));
+                ops.pop();
+            }
+            ops.push(expr[i++]);
+        } else {
+            i++;
+        }
+    }
+    while (!ops.empty()) {
+        output.push_back(string(1, ops.top()));
+        ops.pop();
+    }
+    return output;
+}
+
+// Evaluate postfix expression
+double evalPostfix(const vector<string>& postfix) {
+    stack<double> st;
+    for (const auto& token : postfix) {
+        if (isdigit(token[0]) || (token.size() > 1 && token[0] == '-')) {
+            st.push(stod(token));
+        } else {
+            double b = st.top(); st.pop();
+            double a = st.top(); st.pop();
+            if (token == "+") st.push(a + b);
+            else if (token == "-") st.push(a - b);
+            else if (token == "*") st.push(a * b);
+            else if (token == "/") st.push(a / b);
+        }
+    }
+    return st.top();
+}
+
+int main() {
+    cout << "Expression Calculator\n";
+    string expr;
+    while (true) {
+        cout << "Enter an arithmetic expression (or 'exit' to quit): ";
+        getline(cin, expr);
+        if (expr == "exit") break;
+        vector<string> postfix = infixToPostfix(expr);
+        double result = evalPostfix(postfix);
+        cout << "Result: " << result << endl << endl;
+    }
+    return 0;
+}
