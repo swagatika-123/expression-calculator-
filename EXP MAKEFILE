@@ -1,0 +1,7 @@
+# Build the Expression Calculator executable
+all:
+    g++ src/main.cpp -o expression-calculator.exe
+
+# Remove the executable file
+clean:
+    del expression-calculator.exe
